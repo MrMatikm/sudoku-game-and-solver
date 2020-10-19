@@ -1,6 +1,6 @@
-public class Sudoku  {
+public class Sudoku {
 
-    static int[][] sudoku = {
+    private static int[][] sudoku = {
             {7, 0, 0,  0, 0, 0,  0, 0, 0},
             {0, 0, 3,  4, 0, 6,  0, 0, 0},
             {6, 9, 0,  5, 0, 1,  0, 0, 2},
@@ -17,9 +17,13 @@ public class Sudoku  {
     public static void main(String[] args) {
         printBoard(sudoku);
         System.out.println("--------------------------");
-        solveSudoku(0, 0, sudoku);
+        System.out.println(solveSudoku(0, 0, sudoku));
         printBoard(sudoku);
 
+    }
+
+    public static int[][] getSudoku() {
+        return sudoku;
     }
 
     public static void printBoard(int[][] board) {
