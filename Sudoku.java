@@ -14,14 +14,6 @@ public class Sudoku {
             {8, 0, 0,  0, 0, 0,  0, 0, 7}
     };
 
-    public static void main(String[] args) {
-        printBoard(sudoku);
-        System.out.println("--------------------------");
-        System.out.println(solveSudoku(0, 0, sudoku));
-        printBoard(sudoku);
-
-    }
-
     public static int[][] getSudoku() {
         return sudoku;
     }
