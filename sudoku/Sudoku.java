@@ -1,4 +1,4 @@
-package src;
+package sudoku;
 
 public class Sudoku {
 

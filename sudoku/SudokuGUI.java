@@ -1,4 +1,4 @@
-package src;
+package sudoku;
 
 import javafx.application.Application;
 import javafx.application.Platform;
