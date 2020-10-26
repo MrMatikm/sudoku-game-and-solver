@@ -1,3 +1,5 @@
+package src;
+
 public class Sudoku {
 
     private static int[][] sudoku = {
