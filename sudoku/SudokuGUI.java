@@ -1,7 +1,6 @@
 package sudoku;
 
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -9,12 +8,24 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
-
 import java.util.ArrayList;
 
 public class SudokuGUI extends Application {
     private ArrayList<TextField> fields = new ArrayList<>();
-    private int[][] sudokuBoard = Sudoku.getSudoku();
+    private AbstractSudokuSolver solver = new SudokuSolver();
+    private final int[][] sudokuBoard = {
+            {7, 0, 0,  0, 0, 0,  0, 0, 0},
+            {0, 0, 3,  4, 0, 6,  0, 0, 0},
+            {6, 9, 0,  5, 0, 1,  0, 0, 2},
+
+            {0, 1, 8,  6, 0, 0,  7, 0, 5},
+            {0, 0, 0,  2, 3, 7,  1, 0, 4},
+            {0, 4, 0,  0, 0, 0,  0, 9, 0},
+
+            {1, 7, 5,  8, 0, 0,  0, 0, 0},
+            {0, 0, 0,  7, 5, 0,  3, 0, 0},
+            {8, 0, 0,  0, 0, 0,  0, 0, 7}
+    };
 
     public static void main(String[] args) {
         launch(args);
@@ -29,7 +40,7 @@ public class SudokuGUI extends Application {
         stage.show();
     }
 
-    public GridPane createLayout() {
+    private GridPane createLayout() {
         GridPane grid = new GridPane();
         grid.setPadding(new Insets(10, 10, 10, 10));
         grid.setVgap(1);
@@ -65,12 +76,12 @@ public class SudokuGUI extends Application {
     }
 
     //checks if the entered number is a correct solution; if so it is accepted and the field cannot be edited any more
-    public void getActionForField(int x, int y, TextField field) {
+    private void getActionForField(int x, int y, TextField field) {
         try {
             int number = Integer.parseInt(field.getText());
-            if (number >= 1 && number <= 9 && Sudoku.isNewNumberCorrect(y, x, number, sudokuBoard)) {
+            if (number >= 1 && number <= 9 && solver.isNewNumberCorrect(y, x, number, sudokuBoard)) {
                 sudokuBoard[y][x] = number;
-                if (Sudoku.solveSudoku(0, 0, getDeepCopy()))
+                if (solver.solveSudoku(0, 0, getDeepCopy(), fields))
                     field.setEditable(false);
                 else {
                     sudokuBoard[y][x] = 0;
@@ -82,17 +93,8 @@ public class SudokuGUI extends Application {
         }
     }
 
-    //return a field with the given coordinates
-    public TextField getField(int x, int y) {
-        for(int i = 0; i < 81; i++) {
-            if (i % 9 == x && i / 9 == y)
-                return fields.get(i);
-        }
-        return null;
-    }
-
     //prints the sudoku from the array on the screen
-    public void printSudoku() {
+    private void printSudoku() {
         int count = 0;
         for(int i = 0; i < 9; i++) {
             for(int j = 0; j < 9; j++) {
@@ -106,7 +108,7 @@ public class SudokuGUI extends Application {
     }
 
     //makes a deep copy of the sudoku board
-    public int[][] getDeepCopy() {
+    private int[][] getDeepCopy() {
         int[][] copy = new int[9][9];
         for(int i = 0; i < 9; i++)
             for(int j = 0; j < 9; j++)
@@ -114,66 +116,12 @@ public class SudokuGUI extends Application {
         return copy;
     }
 
-    //solves the sudoku and prints the result on the screen step by step showing how backtracking works
-    public boolean solveSudokuAndPrint(int y, int x, int[][] sudokuSolution) {
-        //sets the the coordinates of the field which will be dealt with next
-        int newX, newY;
-        if (x == 8) {
-            newX = 0;
-            newY = y + 1;
-        }
-        else {
-            newX = x + 1;
-            newY = y;
-        }
-        // if y is equal to 9, the method successfully filled the last field of sudoku
-        if (y == 9)
-            return true;
-
-        // core of the method
-        if (sudokuSolution[y][x] == 0) {
-            for (int i = 1; i <= 9; i++) {
-                if (Sudoku.isNewNumberCorrect(y, x, i, sudokuSolution)) {
-                    sudokuSolution[y][x] = i;
-                    Platform.runLater(() -> {
-                        getField(x, y).setText(Integer.toString(sudokuSolution[y][x]));
-                        getField(x, y).setEditable(false);
-                    });
-                    try {
-                        Thread.sleep(50);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    if (solveSudokuAndPrint(newY, newX, sudokuSolution))
-                        return true;
-                    else {
-                        sudokuSolution[y][x] = 0;
-                        Platform.runLater(() -> {
-                            getField(x, y).clear();
-                            getField(x, y).setEditable(true);
-                        });
-                        try {
-                            Thread.sleep(50);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            }
-        }
-        else
-            return solveSudokuAndPrint(newY, newX, sudokuSolution);
-
-        // if the field cannot be filled with any of the numbers (0 - 9) return false
-        // and possibly change the previous field
-        return false;
-    }
-
     // a thread responsible for solving the sudoku and printing it on the screen
-    public class SolvingThread extends Thread {
+    private class SolvingThread extends Thread {
         @Override
         public void run() {
-            solveSudokuAndPrint(0, 0, sudokuBoard);
+            solver = new SudokuSolverPrinter();
+            solver.solveSudoku(0, 0, sudokuBoard, fields);
         }
     }
 }
